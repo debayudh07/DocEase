@@ -9,7 +9,8 @@ import { PrescriptionNFTForm } from "@/components/prescription-nft-form";
 import { DoctorsList } from "@/components/doctor-list";
 import { AppointmentModal } from "@/components/appointment-modal";
 import { FloatingPaper } from "@/components/common/floating-paper";
-import Navbar from "@/components/common/navbar";
+
+import Navbar2 from "@/components/common/navbar2";
 
 export default function UserHealthDashboard() {
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
@@ -28,7 +29,7 @@ export default function UserHealthDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-8">
-      <Navbar />
+      <Navbar2 />
       <FloatingPaper count={8} />
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

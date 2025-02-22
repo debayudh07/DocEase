@@ -1,23 +1,24 @@
 "use client"
 
-import React, { useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Stethoscope, Menu, X } from "lucide-react"
+import { Stethoscope, Menu, X, User } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import type React from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { MenuItem, Menu as NavMenu, ProductItem, HoveredLink} from "@/components/ui/navbar-menu"
+import { useAuth } from "@/app/_context/Authcontext" // Import the AuthContext
 
 export default function Navbar2() {
-  const [active, setActive] = useState<string | null>(null)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const { user, logout } = useAuth() // Use the AuthContext
 
   return (
-    <div className="fixed top-0 left-0 right-0 p-4 z-50">
+    <div className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 bg-gradient-to-r from-green-50 via-green-100/80 to-green-50 backdrop-blur-md shadow-lg rounded-2xl border border-green-100"
+        className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 bg-white/60 backdrop-blur-xl rounded-2xl border border-green-100/20 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
       >
         <Link href="/" className="flex items-center space-x-2">
           <Stethoscope className="w-8 h-8 text-green-600" />
@@ -25,161 +26,145 @@ export default function Navbar2() {
         </Link>
 
         <div className="hidden md:flex items-center space-x-8">
-          <NavMenu setActive={setActive}>
-            <MenuItem setActive={setActive} active={active} item="Services">
-              <div className="flex flex-col space-y-1 bg-white/90">
-                <HoveredLink href="/consultations" className="px-4 py-2 hover:bg-green-100 transition-colors duration-200 rounded-lg text-green-700">
-                  Online Consultations
-                </HoveredLink>
-                <HoveredLink href="/prescriptions" className="px-4 py-2 hover:bg-green-100 transition-colors duration-200 rounded-lg text-green-700">
-                  E-Prescriptions
-                </HoveredLink>
-                <HoveredLink href="/records" className="px-4 py-2 hover:bg-green-100 transition-colors duration-200 rounded-lg text-green-700">
-                  Medical Records
-                </HoveredLink>
-                <HoveredLink href="/emergency" className="px-4 py-2 hover:bg-green-100 transition-colors duration-200 rounded-lg text-green-700">
-                  Emergency Care
-                </HoveredLink>
-              </div>
-            </MenuItem>
-
-            <MenuItem setActive={setActive} active={active} item="Products">
-              <div className="grid grid-cols-2 gap-4 p-3 bg-white/90">
-                <ProductItem
-                  title="Health Monitor"
-                  href="/products/monitor"
-                  src="/images/health-monitor.jpg"
-                  description="Track your vital signs in real-time"
-                />
-                <ProductItem
-                  title="MediTracker"
-                  href="/products/tracker"
-                  src="/images/medi-tracker.jpg"
-                  description="Manage your medications and appointments"
-                />
-              </div>
-            </MenuItem>
-
-            <MenuItem setActive={setActive} active={active} item="Pricing">
-              <div className="flex flex-col space-y-1 bg-white/90">
-                <HoveredLink href="/pricing/basic" className="px-4 py-2 hover:bg-green-100 transition-colors duration-200 rounded-lg text-green-700">
-                  Basic Plan
-                </HoveredLink>
-                <HoveredLink href="/pricing/premium" className="px-4 py-2 hover:bg-green-100 transition-colors duration-200 rounded-lg text-green-700">
-                  Premium Plan
-                </HoveredLink>
-                <HoveredLink href="/pricing/family" className="px-4 py-2 hover:bg-green-100 transition-colors duration-200 rounded-lg text-green-700">
-                  Family Plan
-                </HoveredLink>
-              </div>
-            </MenuItem>
-          </NavMenu>
+          <NavLink href="/about">About</NavLink>
+          <NavLink href="/features">Features</NavLink>
+          <NavLink href="/pricing">Pricing</NavLink>
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-          <ConnectButton.Custom>
-            {({ account, chain, openAccountModal, openConnectModal }) => (
+          {user ? (
+            // If the user is logged in, show profile and logout buttons
+            <>
+              <Link href="/dashboard/user">
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                  <User className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
               <Button
-                onClick={account ? openAccountModal : openConnectModal}
                 variant="outline"
-                className="rounded-xl bg-green-50/50 backdrop-blur-md border-green-200 hover:bg-green-100 text-green-700"
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                onClick={logout}
               >
-                {account ? `${account.address.slice(0, 6)}...${account.address.slice(-4)}` : "Connect Wallet"}
+                Logout
               </Button>
-            )}
-          </ConnectButton.Custom>
+            </>
+          ) : (
+            // If the user is not logged in, show sign-up and login buttons
+            <>
+              <Link href="/user/register">
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                  <User className="w-4 h-4 mr-2" />
+                  Sign Up
+                </Button>
+              </Link>
+              <Link href="/doctor/register">
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                  Doctor Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
+          <ConnectButton />
         </div>
 
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="md:hidden text-green-700 rounded-xl hover:bg-green-100"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <Button variant="ghost" size="icon" className="md:hidden text-green-700" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </Button>
       </motion.nav>
 
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden fixed inset-x-4 top-24 p-4 bg-white/80 backdrop-blur-lg rounded-2xl border border-green-100 shadow-lg divide-y divide-green-100"
+            className="md:hidden fixed inset-x-4 top-24 p-4 bg-white/80 backdrop-blur-lg rounded-2xl border border-green-100/20 shadow-lg"
           >
-            {/* Services Section */}
-            <div className="py-4">
-              <h3 className="text-green-800 font-medium px-2 mb-2">Services</h3>
-              <div className="space-y-1">
-                <HoveredLink href="/consultations" className="block px-4 py-2 hover:bg-green-100 rounded-lg text-green-700">
-                  Online Consultations
-                </HoveredLink>
-                <HoveredLink href="/prescriptions" className="block px-4 py-2 hover:bg-green-100 rounded-lg text-green-700">
-                  E-Prescriptions
-                </HoveredLink>
-                <HoveredLink href="/records" className="block px-4 py-2 hover:bg-green-100 rounded-lg text-green-700">
-                  Medical Records
-                </HoveredLink>
-                <HoveredLink href="/emergency" className="block px-4 py-2 hover:bg-green-100 rounded-lg text-green-700">
-                  Emergency Care
-                </HoveredLink>
-              </div>
-            </div>
-
-            {/* Products Section */}
-            <div className="py-4">
-              <h3 className="text-green-800 font-medium px-2 mb-2">Products</h3>
-              <div className="space-y-2 px-2">
-                <ProductItem
-                  title="Health Monitor"
-                  href="/products/monitor"
-                  src="/images/health-monitor.jpg"
-                  description="Track your vital signs in real-time"
-                />
-                <ProductItem
-                  title="MediTracker"
-                  href="/products/tracker"
-                  src="/images/medi-tracker.jpg"
-                  description="Manage your medications and appointments"
-                />
-              </div>
-            </div>
-
-            {/* Pricing Section */}
-            <div className="py-4">
-              <h3 className="text-green-800 font-medium px-2 mb-2">Pricing</h3>
-              <div className="space-y-1">
-                <HoveredLink href="/pricing/basic" className="block px-4 py-2 hover:bg-green-100 rounded-lg text-green-700">
-                  Basic Plan
-                </HoveredLink>
-                <HoveredLink href="/pricing/premium" className="block px-4 py-2 hover:bg-green-100 rounded-lg text-green-700">
-                  Premium Plan
-                </HoveredLink>
-                <HoveredLink href="/pricing/family" className="block px-4 py-2 hover:bg-green-100 rounded-lg text-green-700">
-                  Family Plan
-                </HoveredLink>
-              </div>
-            </div>
-
-            {/* Connect Wallet */}
-            <div className="pt-4">
-              <ConnectButton.Custom>
-                {({ account, chain, openAccountModal, openConnectModal }) => (
+            <div className="flex flex-col space-y-4">
+              <Link
+                href="/about"
+                className="text-green-700 hover:text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                About
+              </Link>
+              <Link
+                href="/features"
+                className="text-green-700 hover:text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Features
+              </Link>
+              <Link
+                href="/pricing"
+                className="text-green-700 hover:text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Pricing
+              </Link>
+              <hr className="border-green-100" />
+              {user ? (
+                // If the user is logged in, show dashboard and logout buttons
+                <>
+                  <Link href="/dashboard/user" onClick={() => setIsOpen(false)}>
+                    <Button
+                      variant="outline"
+                      className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
                   <Button
-                    onClick={account ? openAccountModal : openConnectModal}
-                    variant="default"
-                    className="w-full bg-green-600 text-white hover:bg-green-700"
+                    variant="outline"
+                    className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                    onClick={() => {
+                      logout()
+                      setIsOpen(false)
+                    }}
                   >
-                    {account ? `${account.address.slice(0, 6)}...${account.address.slice(-4)}` : "Connect Wallet"}
+                    Logout
                   </Button>
-                )}
-              </ConnectButton.Custom>
+                </>
+              ) : (
+                // If the user is not logged in, show sign-up and login buttons
+                <>
+                  <Link href="/userlogin" onClick={() => setIsOpen(false)}>
+                    <Button
+                      variant="outline"
+                      className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Sign Up
+                    </Button>
+                  </Link>
+                  <Link href="/doctorlogin" onClick={() => setIsOpen(false)}>
+                    <Button
+                      variant="outline"
+                      className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                    >
+                      Doctor Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
+              <div className="w-full">
+                <ConnectButton />
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className="text-green-700 hover:text-green-600 transition-colors relative group">
+      {children}
+      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-400 transition-all group-hover:w-full" />
+    </Link>
   )
 }

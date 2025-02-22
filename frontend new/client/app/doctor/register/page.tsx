@@ -66,6 +66,7 @@ export function RegistrationForm() {
           phone: formData.phone
         },
         password: formData.password,
+        specialization: ''
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
