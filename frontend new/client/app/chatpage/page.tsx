@@ -6,8 +6,8 @@ const ChatPage = () => {
   const searchParams = useSearchParams();
   
   // Get IDs from URL parameters
-  const userId = searchParams.get('userId') || "defaultUser";
-  const recipientId = searchParams.get('recipientId') || "defaultRecipient";
+  const userId = searchParams?.get('userId') || "defaultUser";
+  const recipientId = searchParams?.get('recipientId') || "defaultRecipient";
 
   return (
     <div className="min-h-screen bg-gray-100">
