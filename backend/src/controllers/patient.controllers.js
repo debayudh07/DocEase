@@ -72,8 +72,8 @@ const getPatient = asyncHandler(async (req, res, next) => {
 const loginPatient = asyncHandler(async (req, res, next) => {
     const {name, contact_info, password}= req.body
     console.log(name, contact_info, password);
-    if(!name || !contact_info.email || !password){
-        throw new apiError(400, "Username or Email is rerquired")
+    if(!name || !contact_info.email&&!contact_info.phone || !password){
+        throw new apiError(400, "Phone or email is reqired")
     }
 
     const patient = await Patient.findOne({
