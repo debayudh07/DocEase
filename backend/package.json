@@ -1,14 +1,15 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "backend for decentralised remote healthcare system",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
   },
-  "author": "",
+  "author": "Sankhadeep Chowdhury",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
