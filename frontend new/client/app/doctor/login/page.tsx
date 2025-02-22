@@ -1,11 +1,11 @@
 "use client";
 
 import type React from "react";
-
 import Link from "next/link";
 import { useState } from "react";
 import { Stethoscope } from "lucide-react";
 
+import { useDoctorAuth } from "@/app/_context/Doctorcontext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,16 +18,41 @@ import {
 } from "@/components/ui/card";
 
 export default function DoctorLogin() {
+  const { loginDoctor } = useDoctorAuth();
+  const [formData, setFormData] = useState({
+    name: "",
+    contact_info: {
+      email: "",
+    },
+    password: "",
+  });
+
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.name === 'email') {
+      setFormData({
+        ...formData,
+        contact_info: { ...formData.contact_info, email: e.target.value }
+      });
+    } else {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+    }
+  };
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setIsLoading(true);
 
-    // Add your login logic here
-    setTimeout(() => {
+    console.log("Submitting form with data:", formData);
+
+    try {
+      await loginDoctor(formData);
+    } catch (error) {
+      alert("Login failed! Please check your credentials.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   }
 
   return (
@@ -52,12 +77,28 @@ export default function DoctorLogin() {
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Dr. John Doe"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="border-green-200 focus-visible:ring-green-500"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="doctor@example.com"
                   required
+                  value={formData.contact_info.email}
+                  onChange={handleChange}
                   className="border-green-200 focus-visible:ring-green-500"
                 />
               </div>
@@ -65,8 +106,11 @@ export default function DoctorLogin() {
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   required
+                  value={formData.password}
+                  onChange={handleChange}
                   className="border-green-200 focus-visible:ring-green-500"
                 />
               </div>
@@ -89,7 +133,7 @@ export default function DoctorLogin() {
             <div className="mt-2 text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link
-                href="/doctor-signup"
+                href="/doctor/register"
                 className="text-green-600 hover:underline"
               >
                 Sign up

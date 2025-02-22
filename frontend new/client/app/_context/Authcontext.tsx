@@ -114,10 +114,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await axios.post('http://localhost:8000/api/v1/patients/login', loginData, {
         withCredentials: true, // Ensure cookies are sent and received
       });
-      console.log(response.data)
-      console.log(response.data.data.user)
+  
+      console.log(response.data);
+      console.log(response.data.data.user);
+  
       if (response.data.data.user) {
         setUser(response.data.data.user); // Set the logged-in user
+        router.push('/dashboard/user'); // Redirect to the dashboard after successful login
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -131,21 +134,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
   };
-  console.log(user)
   
   // Redirect after user state is updated
-  useEffect(() => {
-    if (user) {
-      console.log('Redirecting to /dashboard/user...'); // Debugging
-      router.push('/dashboard/user');
-    }
-  }, [user, router]);
+  
 
   const logout = () => {
     setUser(null); // Clear the user state
     document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    router.push('/login'); // Redirect to login page
+    router.push('/user/login'); // Redirect to login page
   };
 
   const value = {

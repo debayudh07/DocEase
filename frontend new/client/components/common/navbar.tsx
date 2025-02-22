@@ -7,9 +7,11 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import type React from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
+import { useDoctorAuth } from "@/app/_context/Doctorcontext" // Import the DoctorAuthContext
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { doctor, access_token, logoutDoctor } = useDoctorAuth() // Use the DoctorAuthContext
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
@@ -30,17 +32,39 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Link href="/user/register">
-            <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
-              <User className="w-4 h-4 mr-2" />
-              Sign Up
-            </Button>
-          </Link>
-          <Link href="/doctor/register">
-            <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
-              Doctor Sign Up
-            </Button>
-          </Link>
+          {doctor ? (
+            // If the doctor is logged in, show profile and logout buttons
+            <>
+              <Link href="/dashboard/doctor">
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                  <User className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                onClick={logoutDoctor}
+              >
+                Logout
+              </Button>
+            </>
+          ) : (
+            // If the doctor is not logged in, show sign-up and login buttons
+            <>
+              <Link href="/user/register">
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                  <User className="w-4 h-4 mr-2" />
+                  Sign Up
+                </Button>
+              </Link>
+              <Link href="/doctor/register">
+                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                  Doctor Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
           <ConnectButton />
         </div>
 
@@ -80,35 +104,53 @@ export default function Navbar() {
                 Pricing
               </Link>
               <hr className="border-green-100" />
-              <Link href="/userlogin" onClick={() => setIsOpen(false)}>
-                <Button
-                  variant="outline"
-                  className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Sign Up
-                </Button>
-              </Link>
-              <Link href="/doctorlogin" onClick={() => setIsOpen(false)}>
-                <Button
-                  variant="outline"
-                  className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                >
-                  Doctor Sign Up
-                </Button>
-              </Link>
-              <div className="w-full">
-                <ConnectButton.Custom>
-                  {({ account, chain, openAccountModal, openConnectModal }) => (
+              {doctor ? (
+                // If the doctor is logged in, show dashboard and logout buttons
+                <>
+                  <Link href="/dashboard/doctor" onClick={() => setIsOpen(false)}>
                     <Button
-                      onClick={account ? openAccountModal : openConnectModal}
-                      variant="default"
-                      className="w-full bg-green-600 text-white hover:bg-green-700"
+                      variant="outline"
+                      className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
                     >
-                      {account ? `${account.address.slice(0, 6)}...${account.address.slice(-4)}` : "Connect Wallet"}
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
                     </Button>
-                  )}
-                </ConnectButton.Custom>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                    onClick={() => {
+                      logoutDoctor()
+                      setIsOpen(false)
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                // If the doctor is not logged in, show sign-up and login buttons
+                <>
+                  <Link href="/userlogin" onClick={() => setIsOpen(false)}>
+                    <Button
+                      variant="outline"
+                      className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Sign Up
+                    </Button>
+                  </Link>
+                  <Link href="/doctorlogin" onClick={() => setIsOpen(false)}>
+                    <Button
+                      variant="outline"
+                      className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                    >
+                      Doctor Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
+              <div className="w-full">
+              <ConnectButton />
               </div>
             </div>
           </motion.div>
@@ -126,4 +168,3 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     </Link>
   )
 }
-
