@@ -62,7 +62,23 @@ const registerDoctor = asyncHandler(async (req, res, next) => {
             throw new apiError(500,"Registering User failed")
         }
         
-        res.status(201).json(
+        res.status(201)
+        .cookie("accessToken", createdDoctor.accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        })
+        .cookie("refreshToken", createdDoctor.refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        })
+        .cookie("userId", createdDoctor._id, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        })
+        .json(
             new apiResponse(200, createdDoctor, "User registered")
         )
 });
