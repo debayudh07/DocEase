@@ -2,6 +2,10 @@ import { Router } from "express";
 import { registerDoctor, loginDoctor, updateDoctor, deleteDoctor, getVerifiedDoctorProfile, updateDoctorAvailability, getAllApprovedDoctors } from "../controllers/doctor.controllers.js";
 import  verifyJWT from "../middlewares/auth.middlewares.js";
 import passport from "../utils/passport.js";
+import { getDoctor } from "../middlewares/getDoctor.middlewares.js";
+
+import multer from 'multer';
+const upload = multer({ dest: 'uploads/' });
 
 
 const router = Router();
@@ -19,8 +23,7 @@ router.route("/login").post(loginDoctor);
 router.route("/update/availability/:id").patch(verifyJWT, updateDoctorAvailability);
 //http://localhost:8000/api/v1/doctors/update/availability/:id 
 
-router.route("/update/:id").put(updateDoctor);
-//http://localhost:8000/api/v1/doctors/update/:id
+
 
 router.route("/delete/:id").delete(deleteDoctor);
 //http://localhost:8000/api/v1/doctors/delete/:id
@@ -75,7 +78,7 @@ router.route("/logout").get((req, res) => {
 router.route("/profile/:id").get(getVerifiedDoctorProfile);
 //http://localhost:8000/api/v1/doctors/profile/:id
 
-router.route("/update/:id").put(updateDoctor);
+router.route("/update/:id").put( updateDoctor);
 //http://localhost:8000/api/v1/doctors/update/:id
 
 router.route("/availability/:id").patch(updateDoctorAvailability);
@@ -83,4 +86,7 @@ router.route("/availability/:id").patch(updateDoctorAvailability);
 
 router.route("/approved").get(getAllApprovedDoctors);
 //http://localhost:8000/api/v1/doctors/approved
+
+
+//http://localhost:8000/api/v1/doctors/:id
 export default router;

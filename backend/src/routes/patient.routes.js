@@ -12,5 +12,8 @@ router.route("/login").post(loginPatient);
 //http://localhost:8000/api/v1/patients/login
 
 router.route("/book/appointment").post(bookAppointment)
+//http://localhost:8000/api/v1/patients/book/appointment
+
+
 
 export default router;

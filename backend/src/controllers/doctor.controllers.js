@@ -2,7 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import apiError from "../utils/apiError.js";
 import apiResponse from "../utils/apiResponse.js";
 import Doctor from "../models/doctors.models.js";
-
+import fs from "fs"
 
 const generateAccessandRefreshToken = async(userId)=>{
     try {
@@ -86,8 +86,8 @@ const registerDoctor = asyncHandler(async (req, res, next) => {
 // need to add multer,cloudinary, otp/email validation for password storage(microservices?/message queue?)
 //need to add avaiblity logic here
 const updateDoctor = asyncHandler(async (req, res, next) => {
-    // Define allowed fields for update (excluding password and availability)
-    const allowedFields = [
+  // Define allowed fields (excluding profileImage which is handled via file upload)
+  const allowedFields = [
       'name',
       'specialty',
       'qualifications',
@@ -95,47 +95,44 @@ const updateDoctor = asyncHandler(async (req, res, next) => {
       'contact_info',
       'hospital_affiliation',
       'consultation_fee',
-      'registrationNumber',
-      'profileImage'
-    ];
-  
-    // Build update object dynamically only from allowed fields
-    const updateData = {};
-    allowedFields.forEach((field) => {
+      'registrationNumber'
+  ];
+
+  // Build update object from allowed fields
+  const updateData = {};
+  allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
-        updateData[field] = req.body[field];
+          updateData[field] = req.body[field];
       }
-    });
-  
-    // If contact_info is provided, ensure at least an email or phone exists
-    if (updateData.contact_info) {
-      if (!updateData.contact_info.email && !updateData.contact_info.phone) {
-        return next(new apiError("Please provide at least an email or phone in contact_info", 400));
-      }
-    }
-  
-    // Get the doctor ID from req.params
-    const doctorId = req.params.id;
-  
-    // Find the doctor by ID
-    const existingDoctor = await Doctor.findById(doctorId);
-    if (!existingDoctor) {
-      return next(new apiError("Doctor does not exist", 404));
-    }
-  
-    // Update the doctor with the specified fields
-    const updatedDoctor = await Doctor.findByIdAndUpdate(
-      doctorId,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    );
-  
-    if (!updatedDoctor) {
-      return next(new apiError("Updating Doctor failed", 500));
-    }
-  
-    res.status(200).json(new apiResponse(200, updatedDoctor, "Doctor updated successfully"));
   });
+
+      // Validate contact info
+      if (updateData.contact_info) {
+          if (!updateData.contact_info.email && !updateData.contact_info.phone) {
+              return next(new apiError("Contact info requires email or phone", 400));
+          }
+      }
+
+      // Update doctor document
+      const updatedDoctor = await Doctor.findByIdAndUpdate(
+          req.params.id,
+          { $set: updateData },
+          { 
+              new: true,
+              runValidators: true,
+              select: '-password -availability'
+          }
+      );
+
+      if (!updatedDoctor) {
+          return next(new apiError("Doctor not found", 404));
+      }
+
+      res.status(200).json(
+          new apiResponse(200, updatedDoctor, "Doctor updated successfully")
+      );
+      
+      });
 
 const updateDoctorPassword = asyncHandler(async (req, res, next) => {
     // Assuming the authenticated doctor’s id is available in req.user.id
