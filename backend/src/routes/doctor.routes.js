@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerDoctor, loginDoctor, updateDoctor, deleteDoctor, getVerifiedDoctorProfile, updateDoctorAvailability } from "../controllers/doctor.controllers.js";
+import { registerDoctor, loginDoctor, updateDoctor, deleteDoctor, getVerifiedDoctorProfile, updateDoctorAvailability, getAllApprovedDoctors } from "../controllers/doctor.controllers.js";
 import  verifyJWT from "../middlewares/auth.middlewares.js";
 import passport from "../utils/passport.js";
 
@@ -75,7 +75,12 @@ router.route("/logout").get((req, res) => {
 router.route("/profile/:id").get(getVerifiedDoctorProfile);
 //http://localhost:8000/api/v1/doctors/profile/:id
 
+router.route("/update/:id").put(updateDoctor);
+//http://localhost:8000/api/v1/doctors/update/:id
+
 router.route("/availability/:id").patch(updateDoctorAvailability);
 //http://localhost:8000/api/v1/doctors/availability/:id
 
+router.route("/approved").get(getAllApprovedDoctors);
+//http://localhost:8000/api/v1/doctors/approved
 export default router;

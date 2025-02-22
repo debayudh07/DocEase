@@ -62,7 +62,23 @@ const registerDoctor = asyncHandler(async (req, res, next) => {
             throw new apiError(500,"Registering User failed")
         }
         
-        res.status(201).json(
+        res.status(201)
+        .cookie("accessToken", createdDoctor.accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        })
+        .cookie("refreshToken", createdDoctor.refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        })
+        .cookie("userId", createdDoctor._id, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        })
+        .json(
             new apiResponse(200, createdDoctor, "User registered")
         )
 });
@@ -203,7 +219,7 @@ const deleteDoctor = asyncHandler(async (req, res, next) => {
 const loginDoctor = asyncHandler(async (req, res, next) => {
     const {name, contact_info, password}= req.body
     console.log(name, contact_info, password);
-    if(!name || !contact_info.email || !password){
+    if(!name || !contact_info.email && !contact_info.phone || !password){
         throw new apiError(400, "Username or Email is rerquired")
     }
 
@@ -234,6 +250,7 @@ const loginDoctor = asyncHandler(async (req, res, next) => {
     return res.status(200)
     .cookie("accessToken",accessToken, options) //adding refresh and access token to cookies
     .cookie("refreshToken", refreshToken, options)
+    .cookie("user._id", loggedinUser._id.toString(), options)
     .json(
         new apiResponse(200,{
             user: loggedinUser, accessToken, refreshToken //alada kore send korchi karon user locally store korte chaite pare for developping maybe mobile app( eta data field)
@@ -267,12 +284,46 @@ const getVerifiedDoctorProfile = asyncHandler(async (req, res, next) => {
 })
 
 
-const getAllApprovedDoctors = asyncHandler(async (req, res, next) => {
-    
+const getAllApprovedDoctors = asyncHandler(async (req, res, next) => { 
+  const doctor = await Doctor.find({  
+    isVerified: true, 
+    specialty: { $exists: true, $ne: [] }, 
+    availability: { $exists: true, $ne: [] } 
+  }).select("-password -refreshToken")
+
+  if (!doctor.length) {
+    throw new apiError(404, "No approved doctors found");
+  }
+  res
+    .status(200)
+    .json(
+      new apiResponse(200, doctor, "Approved doctors fetched successfully")
+    );
+
 })
 
 const getDoctorsBySpecialty = asyncHandler(async (req, res, next) => {
-    
+
+  const { specialty } = req.params;
+  if (!specialty) {
+    throw new apiError(400, "Specialty is required");
+  }
+  const doctor = await Doctor.find({ specialty, isApproved: true }).select(
+    "-password -refreshToken"
+  );
+  if (!doctor.length) {
+    throw new apiError(404, "No doctors found for this specialty");
+  }
+  res
+    .status(200)
+    .json(
+      new apiResponse(
+        200,
+        doctor,
+        'Doctors specializing in ${specialty} fetched successfully'
+      )
+    );
+
 })
 
 const getDoctorReviews = asyncHandler(async (req, res, next) => {

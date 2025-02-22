@@ -2,6 +2,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import apiError from "../utils/apiError.js";
 import apiResponse from "../utils/apiResponse.js";
 import Patient from "../models/users.models.js";
+import Doctor from "../models/doctors.models.js";
+import Appointment from "../models/appointment.models.js";
 
 
 const generateAccessandRefreshToken = async(userId)=>{
@@ -115,4 +117,80 @@ const loginPatient = asyncHandler(async (req, res, next) => {
 const updatePatient = asyncHandler(async (req, res, next) => {
 });
 
-export {registerPatient , getPatient, loginPatient, updatePatient};
+const bookAppointment = asyncHandler(async (req, res, next) => {
+    const { userId, docId, slotDate, slotTime, amount } = req.body;
+
+    // Validate required fields
+    if (!amount) {
+        throw new apiError(400, "Amount is required");
+    }
+
+    // Check doctor existence and get data
+    const doctor = await Doctor.findById(docId).lean();
+    if (!doctor) {
+        throw new apiError(404, "Doctor not found");
+    }
+
+    // Check patient existence and get data
+    const patient = await Patient.findById(userId).lean();
+    if (!patient) {
+        throw new apiError(404, "Patient not found");
+    }
+
+    // Validate slotDate format
+    const slotDateObj = new Date(slotDate);
+    if (isNaN(slotDateObj.getTime())) {
+        throw new apiError(400, "Invalid date format");
+    }
+
+    // Get day name from slot date
+    const slotDay = slotDateObj.toLocaleDateString('en-US', { weekday: 'long' });
+
+    // Check doctor availability
+    const isAvailable = doctor.availability.some(availability => {
+        if (availability.recurring) {
+            return availability.day === slotDay &&
+                   slotTime >= availability.start_time &&
+                   slotTime <= availability.end_time;
+        }
+        return availability.date === slotDate &&
+               slotTime >= availability.start_time &&
+               slotTime <= availability.end_time;
+    });
+
+    if (!isAvailable) {
+        throw new apiError(400, "Time slot not available");
+    }
+
+    // Check for existing appointment
+    const existingAppointment = await Appointment.findOne({
+        doctorId: docId,
+        date: slotDateObj,
+        time: slotTime
+    });
+
+    if (existingAppointment) {
+        throw new apiError(400, "Time slot already booked");
+    }
+
+    // Create new appointment
+    const appointment = await Appointment.create({
+        patientId: userId,
+        doctorId: docId,
+        patientData: patient,
+        doctorData: doctor,
+        date: slotDateObj,
+        time: slotTime,
+        amount: amount,
+        status: "pending",
+        paymentStatus: "pending"
+    });
+
+    res.status(201).json({
+        success: true,
+        message: "Appointment booked successfully",
+        appointment
+    });
+});
+
+export {registerPatient , getPatient, loginPatient, updatePatient, bookAppointment};
