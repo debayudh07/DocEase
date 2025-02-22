@@ -48,7 +48,7 @@ const DoctorKYCForm = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!access_token) {
+    if (!access_token || !user_id) {
       router.push("/doctor/login");
       return;
     }
