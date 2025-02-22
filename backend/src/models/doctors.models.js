@@ -47,6 +47,7 @@ const availabilitySchema = new Schema({
     },
     experience: {
       type: Number,
+      default: 0,
     },
     availability: {
       type: [availabilitySchema],
@@ -99,7 +100,12 @@ const availabilitySchema = new Schema({
       type: String,
     },
     profileImage: {
-      type: String,
+     url: {
+       type: String,
+     },
+     public_id: {
+       type: String,
+     }
     },
     isVerified: {
       type: Boolean,

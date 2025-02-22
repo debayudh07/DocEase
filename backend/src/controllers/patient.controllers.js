@@ -115,6 +115,77 @@ const loginPatient = asyncHandler(async (req, res, next) => {
 });
 
 const updatePatient = asyncHandler(async (req, res, next) => {
+    // Define allowed fields (excluding profileImage which we'll handle separately)
+    const allowedFields = [
+        'name',
+        'specialty',
+        'qualifications',
+        'experience',
+        'contact_info',
+        'hospital_affiliation',
+        'consultation_fee',
+        'registrationNumber'
+    ];
+
+    // Build update object from allowed fields
+    const updateData = {};
+    allowedFields.forEach((field) => {
+        if (req.body[field] !== undefined) {
+            updateData[field] = req.body[field];
+        }
+    });
+
+    // Handle profile image upload
+    if (req.file) {
+        try {
+            // Upload new image to Cloudinary
+            const uploadResponse = await uploadOnCloudinary(req.file.path);
+            
+            if (!uploadResponse || !uploadResponse.secure_url) {
+                return next(new apiError("Failed to upload profile image", 500));
+            }
+            
+            // Add new image URL to update data
+            updateData.profileImage = uploadResponse.secure_url;
+
+            // If updating existing image, delete old image from Cloudinary
+            if (req.doctor?.profileImage) {
+                const publicId = req.doctor.profileImage.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
+            }
+        } catch (error) {
+            return next(new apiError("Image upload failed: " + error.message, 500));
+        }
+    }
+
+    // Validate contact info
+    if (updateData.contact_info) {
+        if (!updateData.contact_info.email && !updateData.contact_info.phone) {
+            return next(new apiError("Contact info requires email or phone", 400));
+        }
+    }
+
+    // Get doctor ID
+    const doctorId = req.params.id;
+
+    try {
+        // Find and update doctor
+        const updatedDoctor = await Doctor.findByIdAndUpdate(
+            doctorId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).select('-password -availability');
+
+        if (!updatedDoctor) {
+            return next(new apiError("Doctor not found", 404));
+        }
+
+        res.status(200).json(
+            new apiResponse(200, updatedDoctor, "Doctor updated successfully")
+        );
+    } catch (error) {
+        return next(new apiError("Update failed: " + error.message, 500));
+    }
 });
 
 const bookAppointment = asyncHandler(async (req, res, next) => {
