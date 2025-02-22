@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,40 +11,67 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from '../../_context/Authcontext';
+import { useState } from 'react';
 
-interface FormData {
-  name: string;
+interface LoginData {
+  name?: string;
+  email?: string;
+  phone?: string;
   password: string;
-  confirmPassword: string;
 }
 
-export function RegistrationForm() {
-  const [formData, setFormData] = useState<FormData>({
+export function LoginForm() {
+  const { login, error: authError, isLoading, clearError } = useAuth();
+  
+  const [loginData, setLoginData] = useState<LoginData>({
     name: '',
+    email: '',
     password: '',
-    confirmPassword: ''
   });
 
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData(prev => ({
+    setLoginData(prev => ({
       ...prev,
       [id]: value
     }));
-    setError('');
+    setFormError('');
+    clearError();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    const { name, email,  password } = loginData;
+
+    if ((!name && !email ) || !password) {
+      setFormError('Please provide all required fields');
       return;
     }
-    
-    console.log('Form submitted:', formData);
+
+    try {
+      await login({
+        name,
+        contact_info: {
+          email: email || undefined
+          
+        },
+        password,
+      });
+      
+      setLoginData({
+        name: '',
+        email: '',
+        
+        password: '',
+      });
+      
+    } catch (err) {
+      console.error('Login error:', err);
+    }
   };
 
   return (
@@ -70,24 +97,24 @@ export function RegistrationForm() {
       <div className="min-h-screen w-full relative flex items-center justify-center bg-green-50 p-4">
         {/* Animated Background Blobs */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-lime-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
 
         {/* Main Form Card */}
         <div className="relative w-full max-w-[400px] z-10">
           <Card className="backdrop-blur-sm bg-white/90 shadow-2xl border-green-100">
             <CardHeader className="space-y-2 text-center">
               <CardTitle className="text-2xl font-bold text-green-700">
-                Registration
+                Welcome Back
               </CardTitle>
               <CardDescription className="text-gray-600">
-                Create your account
+                Sign in to your account
               </CardDescription>
             </CardHeader>
 
             <CardContent>
-              {/* Google Sign In Button */}
-              <div className="mb-6">
+              {/* Social Sign In Buttons */}
+              <div className="space-y-3 mb-6">
                 <Button 
                   type="button" 
                   className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm flex items-center justify-center gap-2 py-5 relative overflow-hidden group"
@@ -110,7 +137,7 @@ export function RegistrationForm() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                  <span className="bg-white px-2 text-gray-500">Or sign in with</span>
                 </div>
               </div>
 
@@ -118,61 +145,63 @@ export function RegistrationForm() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-green-700">Full Name</Label>
+                    <Label htmlFor="name" className="text-green-700">Username</Label>
                     <Input 
                       id="name"
-                      value={formData.name}
+                      value={loginData.name}
                       onChange={handleInputChange}
                       type="text" 
-                      required 
                       className="border-green-200 focus:border-green-500 focus:ring-green-500" 
+                      placeholder="Enter your username"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-green-700">Email</Label>
+                    <Input 
+                      id="email"
+                      value={loginData.email}
+                      onChange={handleInputChange}
+                      type="email" 
+                      className="border-green-200 focus:border-green-500 focus:ring-green-500" 
+                      placeholder="Enter your email"
+                    />
+                  </div>
+
+                  
                   
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-green-700">Password</Label>
                     <Input 
                       id="password"
-                      value={formData.password}
+                      value={loginData.password}
                       onChange={handleInputChange}
                       type="password" 
                       required 
                       className="border-green-200 focus:border-green-500 focus:ring-green-500" 
+                      placeholder="Enter your password"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-green-700">Confirm Password</Label>
-                    <Input 
-                      id="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      type="password" 
-                      required 
-                      className="border-green-200 focus:border-green-500 focus:ring-green-500" 
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="text-red-500 text-sm">{error}</div>
+                  {(formError || authError) && (
+                    <div className="text-red-500 text-sm">{formError || authError}</div>
                   )}
                 </div>
 
                 <Button 
                   type="submit"
                   className="w-full bg-green-600 text-white hover:bg-green-700"
+                  disabled={isLoading}
                 >
-                  Register
+                  {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
             </CardContent>
 
-            <CardFooter className="text-center text-xs text-gray-600 px-6">
+            <CardFooter className="text-center text-xs text-gray-600 px-6 flex flex-col gap-2">
               <p>
-                By registering, you agree to our{' '}
-                <a href="#" className="text-green-600 hover:text-green-700 underline">Terms</a>
-                {' '}and{' '}
-                <a href="#" className="text-green-600 hover:text-green-700 underline">Privacy Policy</a>
+                Don't have an account?{' '}
+                <a href="/register" className="text-green-600 hover:text-green-700 underline">Register</a>
               </p>
             </CardFooter>
           </Card>
@@ -182,4 +211,4 @@ export function RegistrationForm() {
   );
 }
 
-export default RegistrationForm;
+export default LoginForm;

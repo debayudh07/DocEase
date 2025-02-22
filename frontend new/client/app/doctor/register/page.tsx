@@ -1,5 +1,5 @@
 "use client"
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from '../_context/Authcontext';
-import { useState } from 'react';
+import { useDoctorAuth } from '@/app/_context/Doctorcontext';
 
 interface FormData {
   name: string;
@@ -22,9 +21,8 @@ interface FormData {
   confirmPassword: string;
 }
 
-export function UserRegistrationForm() {
-  const { register, error: authError, isLoading, clearError } = useAuth();
-  
+export function RegistrationForm() {
+  const { registerDoctor } = useDoctorAuth();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -33,7 +31,8 @@ export function UserRegistrationForm() {
     confirmPassword: ''
   });
 
-  const [formError, setFormError] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -41,40 +40,37 @@ export function UserRegistrationForm() {
       ...prev,
       [id]: value
     }));
-    setFormError('');
-    clearError();
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     
     if (formData.password !== formData.confirmPassword) {
-      setFormError('Passwords do not match');
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
 
     try {
-      const userData = {
+      setIsLoading(true);
+      await registerDoctor({
         name: formData.name,
         contact_info: {
-          email: formData.email || undefined,
-          phone: formData.phone || undefined,
+          email: formData.email,
+          phone: formData.phone
         },
-        password: formData.password
-      };
-
-      await register(userData);
-      
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: ''
+        password: formData.password,
       });
-      
     } catch (err) {
-      console.error('Registration error:', err);
+      setError(err instanceof Error ? err.message : 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -101,28 +97,29 @@ export function UserRegistrationForm() {
       <div className="min-h-screen w-full relative flex items-center justify-center bg-green-50 p-4">
         {/* Animated Background Blobs */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-lime-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
 
         {/* Main Form Card */}
         <div className="relative w-full max-w-[400px] z-10">
           <Card className="backdrop-blur-sm bg-white/90 shadow-2xl border-green-100">
             <CardHeader className="space-y-2 text-center">
               <CardTitle className="text-2xl font-bold text-green-700">
-                Create Account
+                Doctor Registration
               </CardTitle>
               <CardDescription className="text-gray-600">
-                Join our community today
+                Create your doctor account
               </CardDescription>
             </CardHeader>
 
             <CardContent>
-              {/* Social Sign In Buttons */}
-              <div className="space-y-3 mb-6">
+              {/* Google Sign In Button */}
+              <div className="mb-6">
                 <Button 
                   type="button" 
                   className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm flex items-center justify-center gap-2 py-5 relative overflow-hidden group"
                   variant="outline"
+                  disabled={isLoading}
                 >
                   <div className="absolute inset-0 w-3 bg-gradient-to-r from-green-600 to-green-500 transition-all duration-[250ms] ease-out group-hover:w-full opacity-10" />
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -133,8 +130,6 @@ export function UserRegistrationForm() {
                   </svg>
                   Continue with Google
                 </Button>
-
-               
               </div>
 
               {/* Divider */}
@@ -151,27 +146,28 @@ export function UserRegistrationForm() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-green-700">Username</Label>
+                    <Label htmlFor="name" className="text-green-700">Full Name</Label>
                     <Input 
                       id="name"
                       value={formData.name}
                       onChange={handleInputChange}
                       type="text" 
                       required 
+                      disabled={isLoading}
                       className="border-green-200 focus:border-green-500 focus:ring-green-500" 
-                      placeholder="Choose a username"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-green-700">Email</Label>
+                    <Label htmlFor="email" className="text-green-700">Email Address</Label>
                     <Input 
                       id="email"
                       value={formData.email}
                       onChange={handleInputChange}
                       type="email" 
+                      required 
+                      disabled={isLoading}
                       className="border-green-200 focus:border-green-500 focus:ring-green-500" 
-                      placeholder="Enter your email"
                     />
                   </div>
 
@@ -182,8 +178,9 @@ export function UserRegistrationForm() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       type="tel" 
+                      required 
+                      disabled={isLoading}
                       className="border-green-200 focus:border-green-500 focus:ring-green-500" 
-                      placeholder="Enter your phone number"
                     />
                   </div>
                   
@@ -195,8 +192,8 @@ export function UserRegistrationForm() {
                       onChange={handleInputChange}
                       type="password" 
                       required 
+                      disabled={isLoading}
                       className="border-green-200 focus:border-green-500 focus:ring-green-500" 
-                      placeholder="Create a password"
                     />
                   </div>
 
@@ -208,13 +205,13 @@ export function UserRegistrationForm() {
                       onChange={handleInputChange}
                       type="password" 
                       required 
+                      disabled={isLoading}
                       className="border-green-200 focus:border-green-500 focus:ring-green-500" 
-                      placeholder="Confirm your password"
                     />
                   </div>
 
-                  {(formError || authError) && (
-                    <div className="text-red-500 text-sm">{formError || authError}</div>
+                  {error && (
+                    <div className="text-red-500 text-sm">{error}</div>
                   )}
                 </div>
 
@@ -223,21 +220,17 @@ export function UserRegistrationForm() {
                   className="w-full bg-green-600 text-white hover:bg-green-700"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                  {isLoading ? 'Registering...' : 'Register'}
                 </Button>
               </form>
             </CardContent>
 
-            <CardFooter className="text-center text-xs text-gray-600 px-6 flex flex-col gap-2">
+            <CardFooter className="text-center text-xs text-gray-600 px-6">
               <p>
                 By registering, you agree to our{' '}
                 <a href="#" className="text-green-600 hover:text-green-700 underline">Terms</a>
                 {' '}and{' '}
                 <a href="#" className="text-green-600 hover:text-green-700 underline">Privacy Policy</a>
-              </p>
-              <p>
-                Already have an account?{' '}
-                <a href="#" className="text-green-600 hover:text-green-700 underline">Sign in</a>
               </p>
             </CardFooter>
           </Card>
@@ -247,4 +240,4 @@ export function UserRegistrationForm() {
   );
 }
 
-export default UserRegistrationForm;
+export default RegistrationForm;

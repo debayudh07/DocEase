@@ -1,33 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import type { Doctor } from "@/components/doctor-list"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, FileText, Activity, Pill, Clock } from "lucide-react"
-import { PrescriptionNFTForm } from "@/components/prescription-nft-form"
-import { DoctorsList } from "@/components/doctor-list"
-import { AppointmentModal } from "@/components/appointment-modal"
-import { FloatingPaper } from "@/components/common/floating-paper"
-import Navbar from "@/components/common/navbar"
+import { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
+import type { Doctor } from "@/components/doctor-list";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, FileText, Activity, Pill, Clock } from "lucide-react";
+import { PrescriptionNFTForm } from "@/components/prescription-nft-form";
+import { DoctorsList } from "@/components/doctor-list";
+import { AppointmentModal } from "@/components/appointment-modal";
+import { FloatingPaper } from "@/components/common/floating-paper";
+import Navbar from "@/components/common/navbar";
 
 export default function UserHealthDashboard() {
-  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const router = useRouter(); // Initialize useRouter
 
   const openAppointmentModal = (doctor: Doctor) => {
-    setSelectedDoctor(doctor)
-    setIsAppointmentModalOpen(true)
-  }
+    setSelectedDoctor(doctor);
+    setIsAppointmentModalOpen(true);
+  };
+
+  const handleBookAppointment = (doctor: Doctor) => {
+    // Redirect to the /appointment page
+    router.push(`/appointment`); // Pass doctor ID as a query parameter
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-8">
-        <Navbar />
-    
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-8">
-        
-        <FloatingPaper count={8} />
+      <Navbar />
+      <FloatingPaper count={8} />
       <div className="max-w-7xl mx-auto">
-       
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Bento grid layout */}
           <GlassCard className="md:col-span-2 row-span-2">
@@ -77,7 +80,8 @@ export default function UserHealthDashboard() {
               <CardTitle className="text-2xl">Book an Appointment</CardTitle>
             </CardHeader>
             <CardContent>
-              <DoctorsList onBookAppointment={openAppointmentModal} />
+              {/* Pass handleBookAppointment as the onBookAppointment prop */}
+              <DoctorsList onBookAppointment={handleBookAppointment} />
             </CardContent>
           </GlassCard>
 
@@ -105,8 +109,6 @@ export default function UserHealthDashboard() {
         </div>
       </div>
 
-      
-
       {selectedDoctor && (
         <AppointmentModal
           isOpen={isAppointmentModalOpen}
@@ -115,8 +117,7 @@ export default function UserHealthDashboard() {
         />
       )}
     </div>
-    </div>
-  )
+  );
 }
 
 function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -126,6 +127,5 @@ function GlassCard({ children, className = "" }: { children: React.ReactNode; cl
     >
       {children}
     </Card>
-  )
+  );
 }
-

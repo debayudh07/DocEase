@@ -30,13 +30,13 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Link href="/userlogin">
+          <Link href="/user/register">
             <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
               <User className="w-4 h-4 mr-2" />
               Sign Up
             </Button>
           </Link>
-          <Link href="/doctorlogin">
+          <Link href="/doctor/register">
             <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
               Doctor Sign Up
             </Button>
