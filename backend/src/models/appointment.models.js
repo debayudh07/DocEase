@@ -42,3 +42,8 @@ const appointmentSchema = new Schema({
       default: "pending",
     },
   });
+
+  const Appointment = model('Appointment', appointmentSchema);
+  
+  
+  export default Appointment

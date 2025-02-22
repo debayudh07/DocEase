@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerPatient, loginPatient } from "../controllers/patient.controllers.js";
+import { registerPatient, loginPatient, bookAppointment } from "../controllers/patient.controllers.js";
 import passport from "../utils/passport.js";
 
 
@@ -10,5 +10,7 @@ router.route("/register").post(registerPatient);
 
 router.route("/login").post(loginPatient);
 //http://localhost:8000/api/v1/patients/login
+
+router.route("/book/appointment").post(bookAppointment)
 
 export default router;
