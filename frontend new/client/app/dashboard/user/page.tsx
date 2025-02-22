@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 import type { Doctor } from "@/components/doctor-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, FileText, Activity, Pill, Clock } from "lucide-react";
-import { PrescriptionNFTForm } from "@/components/prescription-nft-form";
 import { DoctorsList } from "@/components/doctor-list";
 import { AppointmentModal } from "@/components/appointment-modal";
 import { FloatingPaper } from "@/components/common/floating-paper";
-
 import Navbar2 from "@/components/common/navbar2";
+import { PrescriptionCard } from "@/components/PrescriptionCard"; // Import the reusable PrescriptionCard
+import PrescriptionViewer from "@/components/PrescriptionViewer";
 
 export default function UserHealthDashboard() {
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   const openAppointmentModal = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
@@ -23,8 +23,7 @@ export default function UserHealthDashboard() {
   };
 
   const handleBookAppointment = (doctor: Doctor) => {
-    // Redirect to the /appointment page
-    router.push(`/appointment`); // Pass doctor ID as a query parameter
+    router.push(`/appointment`);
   };
 
   return (
@@ -33,16 +32,26 @@ export default function UserHealthDashboard() {
       <FloatingPaper count={8} />
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Bento grid layout */}
-          <GlassCard className="md:col-span-2 row-span-2">
+          {/* Replace PrescriptionNFTForm with PrescriptionCard */}
+            <GlassCard className="md:col-span-2 row-span-2">
             <CardHeader>
               <CardTitle className="text-2xl">Prescription NFT</CardTitle>
             </CardHeader>
             <CardContent>
-              <PrescriptionNFTForm />
+              <PrescriptionCard /> {/* Use the reusable PrescriptionCard component */}
             </CardContent>
-          </GlassCard>
+            </GlassCard>
 
+            <GlassCard className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-2xl">Prescription NFTs</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PrescriptionViewer /> {/* Use the reusable PrescriptionViewer component */}
+            </CardContent>
+            </GlassCard>
+
+          {/* Other GlassCards */}
           <GlassCard>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg font-medium">Upcoming Appointments</CardTitle>
@@ -81,7 +90,6 @@ export default function UserHealthDashboard() {
               <CardTitle className="text-2xl">Book an Appointment</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Pass handleBookAppointment as the onBookAppointment prop */}
               <DoctorsList onBookAppointment={handleBookAppointment} />
             </CardContent>
           </GlassCard>
