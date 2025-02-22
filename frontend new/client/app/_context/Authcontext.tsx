@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode , useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
@@ -8,7 +8,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   register: (userData: RegistrationData) => Promise<void>;
+  login: (loginData: LoginData) => Promise<void>;
   clearError: () => void;
+  logout: () => void;
 }
 
 interface User {
@@ -22,6 +24,15 @@ interface User {
 
 interface RegistrationData {
   name: string;
+  contact_info: {
+    email?: string;
+    phone?: string;
+  };
+  password: string;
+}
+
+interface LoginData {
+  name?: string;
   contact_info: {
     email?: string;
     phone?: string;
@@ -88,12 +99,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const login = async (loginData: LoginData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+  
+      const { name, contact_info, password } = loginData;
+      const { email } = contact_info;
+  
+      if ((!name && !email) || !password) {
+        throw new Error('Please provide all required fields');
+      }
+  
+      const response = await axios.post('http://localhost:8000/api/v1/patients/login', loginData, {
+        withCredentials: true, // Ensure cookies are sent and received
+      });
+      console.log(response.data)
+      console.log(response.data.data.user)
+      if (response.data.data.user) {
+        setUser(response.data.data.user); // Set the logged-in user
+      }
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || 'Login failed');
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  console.log(user)
+  
+  // Redirect after user state is updated
+  useEffect(() => {
+    if (user) {
+      console.log('Redirecting to /dashboard/user...'); // Debugging
+      router.push('/dashboard/user');
+    }
+  }, [user, router]);
+
+  const logout = () => {
+    setUser(null); // Clear the user state
+    document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    router.push('/login'); // Redirect to login page
+  };
+
   const value = {
     user,
     isLoading,
     error,
     register,
-    clearError
+    login,
+    clearError,
+    logout,
   };
 
   return (
