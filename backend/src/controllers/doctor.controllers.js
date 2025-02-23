@@ -131,7 +131,7 @@ const updateDoctor = asyncHandler(async (req, res, next) => {
       res.status(200).json(
           new apiResponse(200, updatedDoctor, "Doctor updated successfully")
       );
-      
+
       });
 
 const updateDoctorPassword = asyncHandler(async (req, res, next) => {
@@ -334,7 +334,23 @@ const getDoctorAppointments = asyncHandler(async (req, res, next) => {
 const getDoctorAvailability = asyncHandler(async (req, res, next) => {
 });
 
+const getAllDoctors = asyncHandler(async (req, res, next) => {
+  // Extract the name from the request body
+  const { name } = req.body;
+
+  // Optionally, validate the name field
+  if (!name) {
+    return res.status(400).json({ success: false, message: "Name is required" });
+  }
+
+  // Find doctors whose name matches (case-insensitive search)
+  const doctors = await Doctor.find({ name: { $regex: name, $options: 'i' } });
+
+  // Return the results in the response
+  res.status(200).json({ success: true, data: doctors });
+});
 
 
 
-export { registerDoctor, updateDoctor, deleteDoctor, loginDoctor, logoutDoctor, getVerifiedDoctorProfile, getAllApprovedDoctors, getDoctorsBySpecialty, getDoctorReviews, getDoctorAppointments, getDoctorAvailability, updateDoctorAvailability, updateDoctorPassword };
+
+export { registerDoctor, updateDoctor, deleteDoctor, loginDoctor, logoutDoctor, getVerifiedDoctorProfile, getAllApprovedDoctors, getDoctorsBySpecialty, getDoctorReviews, getDoctorAppointments, getDoctorAvailability, updateDoctorAvailability, updateDoctorPassword, getAllDoctors };
