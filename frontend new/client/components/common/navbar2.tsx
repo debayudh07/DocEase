@@ -107,13 +107,13 @@ export default function Navbar2() {
               {user ? (
                 // If the user is logged in, show dashboard and logout buttons
                 <>
-                  <Link href="/dashboard/user" onClick={() => setIsOpen(false)}>
+                 <Link href="/dashboard/doctor" onClick={() => setIsOpen(false)}>
                     <Button
                       variant="outline"
                       className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      Dashboard
+                      {user.name} {/* Display the doctor's name */}
                     </Button>
                   </Link>
                   <Button

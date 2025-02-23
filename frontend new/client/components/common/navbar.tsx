@@ -33,12 +33,12 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center space-x-4">
           {doctor ? (
-            // If the doctor is logged in, show profile and logout buttons
+            // If the doctor is logged in, show profile, username, and logout buttons
             <>
               <Link href="/dashboard/doctor">
                 <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
                   <User className="w-4 h-4 mr-2" />
-                  Dashboard
+                  {doctor.name} {/* Display the doctor's name */}
                 </Button>
               </Link>
               <Button
@@ -113,7 +113,7 @@ export default function Navbar() {
                       className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      Dashboard
+                      {doctor.name} {/* Display the doctor's name */}
                     </Button>
                   </Link>
                   <Button
@@ -150,7 +150,7 @@ export default function Navbar() {
                 </>
               )}
               <div className="w-full">
-              <ConnectButton />
+                <ConnectButton />
               </div>
             </div>
           </motion.div>
