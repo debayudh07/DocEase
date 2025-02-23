@@ -91,10 +91,12 @@ export default function DoctorChatInterface() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-green-600 hover:bg-green-700">
-                <Video className="mr-2 h-4 w-4" />
-                Start Video Call
-              </Button>
+                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                <a href="/create-room">
+                  <Video className="mr-2 h-4 w-4" />
+                  Start Video Call
+                </a>
+                </Button>
             </CardContent>
           </Card>
 

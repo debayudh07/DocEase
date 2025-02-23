@@ -62,33 +62,34 @@ export function DoctorAuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   // Load access_token and user_id from cookies on initial load
-  useEffect(() => {
-    const accessToken = Cookies.get("accessToken");
-    const userId = Cookies.get("userId");
-
-    if (accessToken && userId) {
-      setAccessToken(accessToken);
-      setUserId(userId);
-      fetchDoctorData(accessToken, userId);
-    } else {
-      setIsLoading(false); // No tokens found, stop loading
-    }
-  }, []);
+//   useEffect(() => {
+//     const accessToken = Cookies.get("accessToken");
+//     console.log(accessToken);
+//     const userId = Cookies.get("userId");
+//     console.log(userId);
+//     if (accessToken && userId) {
+//       setAccessToken(accessToken);
+//       setUserId(userId);
+//       fetchDoctorData(accessToken, userId);
+//     } else {
+//       setIsLoading(false); // No tokens found, stop loading
+//     }
+//   }, []);
 
   // Fetch doctor data if access_token and user_id are present
-  const fetchDoctorData = async (token: string, userId: string) => {
-    try {
-      const response = await axios.get(`http://localhost:8000/api/v1/doctors/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDoctor(response.data.data);
-    } catch (error) {
-      console.error("Error fetching doctor data:", error);
-      logoutDoctor(); // Clear invalid tokens
-    } finally {
-      setIsLoading(false);
-    }
-  };
+//   const fetchDoctorData = async (token: string, userId: string) => {
+//     try {
+//       const response = await axios.get(`http://localhost:8000/api/v1/doctors/${userId}`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+//       setDoctor(response.data.data);
+//     } catch (error) {
+//       console.error("Error fetching doctor data:", error);
+//       logoutDoctor(); // Clear invalid tokens
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
 
   const clearError = () => setError(null);
 
@@ -141,12 +142,13 @@ export function DoctorAuthProvider({ children }: { children: ReactNode }) {
 
       if (response.data.data.user) {
         const user = response.data.data.user;
-        const token = response.data.token;
+        const token = response.data.data.accessToken;
 
         setDoctor(user);
         setAccessToken(token);
+        console.log(token);
         setUserId(user._id);
-
+        console.log(user._id);
         // Store in cookies for persistence
         Cookies.set("accessToken", token, { expires: 7, secure: true, sameSite: "strict" });
         Cookies.set("userId", user._id, { expires: 7, secure: true, sameSite: "strict" });

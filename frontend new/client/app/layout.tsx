@@ -4,6 +4,12 @@ import "./globals.css";
 import Providers from "./provider";
 import { AuthProvider } from "./_context/Authcontext";
 import { DoctorAuthProvider } from "./_context/Doctorcontext";
+import { CopilotKit } from "@copilotkit/react-core";
+import { CopilotPopup } from "@copilotkit/react-ui";
+import "@copilotkit/react-ui/styles.css"; 
+
+
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +38,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers><DoctorAuthProvider><AuthProvider>{children}</AuthProvider></DoctorAuthProvider></Providers>
+        <Providers><DoctorAuthProvider><AuthProvider><CopilotKit publicApiKey="ck_pub_e64926d648343785d8dab62d4c920541"> {children}
+          
+          
+        <CopilotPopup
+            labels={{
+              title: "Doc Assistant",
+              initial: "Hello! How can I assist you with your sickness?",
+            }}
+            className="neobrutalist-copilot z-100"
+          />
+          </CopilotKit></AuthProvider></DoctorAuthProvider></Providers>
       </body>
     </html>
   );
