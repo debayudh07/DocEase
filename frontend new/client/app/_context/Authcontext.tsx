@@ -14,6 +14,7 @@ interface AuthContextType {
 }
 
 interface User {
+  id: any;
   _id: string;
   name: string;
   contact_info: {

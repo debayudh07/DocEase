@@ -4,7 +4,7 @@ import apiResponse from "../utils/apiResponse.js";
 import Patient from "../models/users.models.js";
 import Doctor from "../models/doctors.models.js";
 import Appointment from "../models/appointment.models.js";
-
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const generateAccessandRefreshToken = async(userId)=>{
     try {
@@ -115,88 +115,74 @@ const loginPatient = asyncHandler(async (req, res, next) => {
 });
 
 const updatePatient = asyncHandler(async (req, res, next) => {
-    // Define allowed fields (excluding profileImage which we'll handle separately)
-    const allowedFields = [
-        'name',
-        'specialty',
-        'qualifications',
-        'experience',
-        'contact_info',
-        'hospital_affiliation',
-        'consultation_fee',
-        'registrationNumber'
-    ];
-
-    // Build update object from allowed fields
-    const updateData = {};
-    allowedFields.forEach((field) => {
-        if (req.body[field] !== undefined) {
-            updateData[field] = req.body[field];
-        }
-    });
-
-    // Handle profile image upload
-    if (req.file) {
-        try {
-            // Upload new image to Cloudinary
-            const uploadResponse = await uploadOnCloudinary(req.file.path);
-            
-            if (!uploadResponse || !uploadResponse.secure_url) {
-                return next(new apiError("Failed to upload profile image", 500));
-            }
-            
-            // Add new image URL to update data
-            updateData.profileImage = uploadResponse.secure_url;
-
-            // If updating existing image, delete old image from Cloudinary
-            if (req.doctor?.profileImage) {
-                const publicId = req.doctor.profileImage.split('/').pop().split('.')[0];
-                await cloudinary.uploader.destroy(publicId);
-            }
-        } catch (error) {
-            return next(new apiError("Image upload failed: " + error.message, 500));
-        }
+    // 1. Parse JSON fields from FormData strings
+    if (req.body.allergies) {
+      try {
+        req.body.allergies = JSON.parse(req.body.allergies);
+      } catch (error) {
+        return next(new apiError("Invalid allergies format", 400));
+      }
     }
-
-    // Validate contact info
-    if (updateData.contact_info) {
-        if (!updateData.contact_info.email && !updateData.contact_info.phone) {
-            return next(new apiError("Contact info requires email or phone", 400));
-        }
+  
+    if (req.body.contact_info) {
+      try {
+        req.body.contact_info = JSON.parse(req.body.contact_info);
+      } catch (error) {
+        return next(new apiError("Invalid contact info format", 400));
+      }
     }
-
-    // Get doctor ID
-    const doctorId = req.params.id;
-
-    try {
-        // Find and update doctor
-        const updatedDoctor = await Doctor.findByIdAndUpdate(
-            doctorId,
-            { $set: updateData },
-            { new: true, runValidators: true }
-        ).select('-password -availability');
-
-        if (!updatedDoctor) {
-            return next(new apiError("Doctor not found", 404));
-        }
-
-        res.status(200).json(
-            new apiResponse(200, updatedDoctor, "Doctor updated successfully")
-        );
-    } catch (error) {
-        return next(new apiError("Update failed: " + error.message, 500));
+  
+    // 2. Process file uploads
+    const updateData = { ...req.body };
+  
+    // Handle profile image
+    if (req.files?.profileImage) {
+      const profileFile = req.files.profileImage[0];
+      // Upload logic...
     }
-});
+  
+    // Handle medical certificates
+    if (req.files?.medical_certificates) {
+      const certFiles = req.files.medical_certificates;
+      const uploadedUrls = [];
+      
+      for (const file of certFiles) {
+        const result = await uploadOnCloudinary(file.path);
+        if (result?.secure_url) {
+          uploadedUrls.push(result.secure_url);
+        }
+      }
+      
+      updateData.medical_certificates = uploadedUrls;
+    }
+  
+    // 3. Update database
+    const patient = await Patient.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true }
+    ).select('-password');
+  
+      if (!patient) {
+        return next(new apiError("Patient not found", 404));
+      }
+  
+      res.status(200).json(
+        new apiResponse(200, patient, "Patient updated successfully")
+      );
+    } 
+  );
 
 const bookAppointment = asyncHandler(async (req, res, next) => {
-    const { userId, docId, slotDate, slotTime, amount } = req.body;
+    const { userId, docId, slotDate, slotTime } = req.body;
 
     // Validate required fields
-    if (!amount) {
-        throw new apiError(400, "Amount is required");
-    }
+    // if (!amount) {
+    //     throw new apiError(400, "Amount is required");
+    // }
 
     // Check doctor existence and get data
+    console.log(docId);
     const doctor = await Doctor.findById(docId).lean();
     if (!doctor) {
         throw new apiError(404, "Doctor not found");
@@ -252,7 +238,6 @@ const bookAppointment = asyncHandler(async (req, res, next) => {
         doctorData: doctor,
         date: slotDateObj,
         time: slotTime,
-        amount: amount,
         status: "pending",
         paymentStatus: "pending"
     });

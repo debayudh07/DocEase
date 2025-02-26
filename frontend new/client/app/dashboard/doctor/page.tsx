@@ -47,8 +47,7 @@ interface Appointment {
   status: string;
   notes: string;
   lastVisit: string;
-  insuranceProvider: string;
-  policyNumber: string;
+
 }
 
 export default function DoctorDashboard() {
@@ -57,43 +56,27 @@ export default function DoctorDashboard() {
   
   const appointments: Appointment[] = [
     {
-      name: "John Doe",
+      name: "Sankhadeep Chowdhury",
       time: "09:00 AM",
       date: "Feb 9, 2025",
       type: "Check-up",
       location: "Room 101",
-      phone: "+1 (555) 123-4567",
+      phone: "4567",
       status: "Confirmed",
       notes: "Regular annual check-up, patient has history of hypertension",
       lastVisit: "Jan 9, 2025",
-      insuranceProvider: "HealthCare Plus",
-      policyNumber: "HC123456789"
+     
     },
     {
-      name: "Jane Smith",
-      time: "10:30 AM",
-      date: "Feb 9, 2025",
-      type: "Follow-up",
-      location: "Room 203",
-      phone: "+1 (555) 234-5678",
-      status: "Pending",
-      notes: "Follow-up for medication adjustment",
-      lastVisit: "Jan 25, 2025",
-      insuranceProvider: "MediCover",
-      policyNumber: "MC987654321"
-    },
-    {
-      name: "Bob Johnson",
-      time: "02:00 PM",
-      date: "Feb 9, 2025",
+      name: "rajarshi",
+      time: "11:30 PM",
+      date: "Feb 24, 2025",
       type: "Consultation",
       location: "Room 105",
-      phone: "+1 (555) 345-6789",
+      phone: "7980564387",
       status: "Confirmed",
       notes: "Initial consultation for knee pain",
       lastVisit: "N/A",
-      insuranceProvider: "GlobalHealth",
-      policyNumber: "GH456789123"
     },
     {
       name: "Alice Brown",
@@ -105,8 +88,7 @@ export default function DoctorDashboard() {
       status: "Confirmed",
       notes: "Monthly review of chronic condition",
       lastVisit: "Jan 15, 2025",
-      insuranceProvider: "CarePlus",
-      policyNumber: "CP789123456"
+     
     }
   ]
 
@@ -376,8 +358,7 @@ export default function DoctorDashboard() {
                     <div className="bg-white/50 p-4 rounded-lg">
                       <h4 className="text-sm font-medium text-emerald-900 mb-2">Insurance</h4>
                       <div className="space-y-2">
-                        <p className="text-sm text-emerald-800">Provider: {selectedAppointment.insuranceProvider}</p>
-                        <p className="text-sm text-emerald-800">Policy: {selectedAppointment.policyNumber}</p>
+                       
                       </div>
                     </div>
 

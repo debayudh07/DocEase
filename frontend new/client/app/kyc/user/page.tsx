@@ -1,30 +1,89 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/app/_context/Authcontext';
+import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 const KYCForm = () => {
+  const { user } = useAuth(); // Assuming your auth context provides user data
+  const router = useRouter(); // Initialize the router
+  const [isLoading, setIsLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     emergency_contact: '',
-    profileImage: '',
-    medical_certificates: [] as string[],
+    medical_certificates: [] as File[],
     blood_group: '',
     allergies: [] as string[],
     gender: '',
   });
 
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [allergyInput, setAllergyInput] = useState('');
-  const [fileUpload, setFileUpload] = useState(null);
 
   const bloodGroups = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
   const genders = ["male", "female", "other"];
 
-  const handleSubmit = (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    setIsLoading(true);
+    
+    if (!user?._id) {
+      toast.error("User not authenticated");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const formPayload = new FormData();
+
+      // Append JSON data
+      formPayload.append('blood_group', formData.blood_group);
+      formPayload.append('gender', formData.gender);
+      formPayload.append('allergies', JSON.stringify(formData.allergies));
+      formPayload.append('contact_info', JSON.stringify({ 
+        phone: formData.emergency_contact 
+      }));
+
+      // Append files
+      if (profileImageFile) {
+        formPayload.append('profileImage', profileImageFile);
+      }
+
+      formData.medical_certificates.forEach((file) => {
+        formPayload.append('medical_certificates', file);
+      });
+
+      const response = await fetch(
+        `http://localhost:8000/api/v1/patients/update/${user._id}`,
+        {
+          method: 'PATCH',
+          body: formPayload,
+          // Headers will be automatically set by browser for FormData
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update patient information');
+      }
+
+      toast.success("KYC information updated successfully!");
+      
+      // Redirect to /dashboard/user after successful submission
+      router.push('/dashboard/user');
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      toast.error(error.message || 'An error occurred during submission');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAddAllergy = () => {
@@ -42,12 +101,13 @@ const KYCForm = () => {
     setFormData({ ...formData, allergies: newAllergies });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const handleMedicalCertUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      // Convert FileList to an array and add to state
       setFormData({
         ...formData,
-        medical_certificates: [...formData.medical_certificates, file.name]
+        medical_certificates: [...formData.medical_certificates, ...Array.from(files)]
       });
     }
   };
@@ -62,12 +122,16 @@ const KYCForm = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Emergency Contact */}
             <div className="space-y-2">
-              <Label htmlFor="emergency_contact" className="text-green-700">Emergency Contact Number</Label>
+              <Label htmlFor="emergency_contact" className="text-green-700">
+                Emergency Contact Number
+              </Label>
               <Input
                 id="emergency_contact"
                 type="tel"
                 value={formData.emergency_contact}
-                onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, emergency_contact: e.target.value })
+                }
                 placeholder="Emergency contact number"
                 className="w-full border-green-200 focus:ring-green-500 focus:border-green-500"
               />
@@ -75,24 +139,32 @@ const KYCForm = () => {
 
             {/* Profile Image */}
             <div className="space-y-2">
-              <Label htmlFor="profileImage" className="text-green-700">Profile Image</Label>
+              <Label htmlFor="profileImage" className="text-green-700">
+                Profile Image
+              </Label>
               <Input
                 id="profileImage"
                 type="file"
                 accept="image/*"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, profileImage: e.target.files?.[0]?.name || '' })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setProfileImageFile(e.target.files[0]);
+                  }
+                }}
                 className="w-full border-green-200 focus:ring-green-500 focus:border-green-500"
               />
             </div>
 
             {/* Medical Certificates */}
             <div className="space-y-2">
-              <Label htmlFor="medical_certificates" className="text-green-700">Medical Certificates</Label>
+              <Label htmlFor="medical_certificates" className="text-green-700">
+                Medical Certificates
+              </Label>
               <Input
                 id="medical_certificates"
                 type="file"
                 accept=".pdf,.doc,.docx"
-                onChange={handleFileUpload}
+                onChange={handleMedicalCertUpload}
                 className="w-full border-green-200 focus:ring-green-500 focus:border-green-500"
                 multiple
               />
@@ -100,8 +172,10 @@ const KYCForm = () => {
                 <div className="mt-2 bg-green-50 p-3 rounded-md">
                   <p className="text-sm font-medium text-green-700">Uploaded certificates:</p>
                   <ul className="list-disc pl-5">
-                    {formData.medical_certificates.map((cert, index) => (
-                      <li key={index} className="text-sm text-green-600">{cert}</li>
+                    {formData.medical_certificates.map((file, index) => (
+                      <li key={index} className="text-sm text-green-600">
+                        {file.name}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -110,8 +184,10 @@ const KYCForm = () => {
 
             {/* Blood Group */}
             <div className="space-y-2">
-              <Label htmlFor="blood_group" className="text-green-700">Blood Group</Label>
-              <Select 
+              <Label htmlFor="blood_group" className="text-green-700">
+                Blood Group
+              </Label>
+              <Select
                 onValueChange={(value) => setFormData({ ...formData, blood_group: value })}
                 value={formData.blood_group}
               >
@@ -130,7 +206,9 @@ const KYCForm = () => {
 
             {/* Allergies */}
             <div className="space-y-2">
-              <Label htmlFor="allergies" className="text-green-700">Allergies</Label>
+              <Label htmlFor="allergies" className="text-green-700">
+                Allergies
+              </Label>
               <div className="flex gap-2">
                 <Input
                   id="allergies"
@@ -139,8 +217,8 @@ const KYCForm = () => {
                   placeholder="Add allergy"
                   className="flex-1 border-green-200 focus:ring-green-500 focus:border-green-500"
                 />
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={handleAddAllergy}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
@@ -170,7 +248,9 @@ const KYCForm = () => {
 
             {/* Gender */}
             <div className="space-y-2">
-              <Label htmlFor="gender" className="text-green-700">Gender</Label>
+              <Label htmlFor="gender" className="text-green-700">
+                Gender
+              </Label>
               <Select
                 onValueChange={(value) => setFormData({ ...formData, gender: value })}
                 value={formData.gender}
@@ -188,15 +268,17 @@ const KYCForm = () => {
               </Select>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-green-600 hover:bg-green-700 text-white"
+              disabled={isLoading}
             >
-              Submit KYC Information
+              {isLoading ? 'Submitting...' : 'Submit KYC Information'}
             </Button>
           </form>
         </CardContent>
       </Card>
+      <Toaster />
     </div>
   );
 };

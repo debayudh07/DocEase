@@ -8,9 +8,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { ethers } from "ethers"; // Import ethers.js
+import { ethers } from "ethers";
+import { contractaddress2, contractaddress_amoy } from "@/contract/contractABI2";
+import { contractABI2 } from "@/contract/contractABI2";
+import { useAuth } from "@/app/_context/Authcontext"; // Import AuthContext
+import { toast } from 'sonner'; // For toast notifications
 
-export default function AppointmentPage() {
+export default function AppointmentPage({ params }: { params: { doctorId: string } }) {
+  const { user } = useAuth(); // Get the logged-in user from AuthContext
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState<string>();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -19,366 +24,9 @@ export default function AppointmentPage() {
   const [error, setError] = useState<string>("");
 
   // Token contract details
-  const tokenAddress = "0xe9915F1bF0CF2F104B2DB7B51543361E0dc36C4d"; // Replace with your token contract address
-  const tokenABI = [
-    {
-      "inputs": [],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "spender",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "allowance",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "needed",
-          "type": "uint256"
-        }
-      ],
-      "name": "ERC20InsufficientAllowance",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "sender",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "balance",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "needed",
-          "type": "uint256"
-        }
-      ],
-      "name": "ERC20InsufficientBalance",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "approver",
-          "type": "address"
-        }
-      ],
-      "name": "ERC20InvalidApprover",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "receiver",
-          "type": "address"
-        }
-      ],
-      "name": "ERC20InvalidReceiver",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "sender",
-          "type": "address"
-        }
-      ],
-      "name": "ERC20InvalidSender",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "spender",
-          "type": "address"
-        }
-      ],
-      "name": "ERC20InvalidSpender",
-      "type": "error"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "spender",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "value",
-          "type": "uint256"
-        }
-      ],
-      "name": "Approval",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "value",
-          "type": "uint256"
-        }
-      ],
-      "name": "Transfer",
-      "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "spender",
-          "type": "address"
-        }
-      ],
-      "name": "allowance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "spender",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "approve",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "balanceOf",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "decimals",
-      "outputs": [
-        {
-          "internalType": "uint8",
-          "name": "",
-          "type": "uint8"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "spender",
-          "type": "address"
-        }
-      ],
-      "name": "getAllowance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "getBalance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "name",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "symbol",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "totalSupply",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "transfer",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "sender",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "transferFrom",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }
-  ];
-
+  const tokenAddress = contractaddress2; // Replace with your token contract address
+  const tokenABI = contractABI2;
+  console.log(params.doctorId);
   const handlePayment = async () => {
     if (!window.ethereum) {
       setError("Please install MetaMask to make a payment");
@@ -394,34 +42,79 @@ export default function AppointmentPage() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
-  
+
       // Connect to the token contract
       const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
-  
+
       // Define the payment amount in tokens (e.g., 100 tokens)
-      const amount = ethers.parseUnits("100", 18); // Adjust decimals if needed
-  
+      const amount = ethers.parseUnits("10", 18); // Adjust decimals if needed
+
       // Check user's token balance
       const balance = await tokenContract.balanceOf(userAddress);
-  
+
       // Compare balance with amount using BigInt
       if (balance < amount) {
         throw new Error("Insufficient token balance");
       }
-  
+
       // Send tokens to the recipient
       const tx = await tokenContract.transfer("0xB32acD0dBF357bf2Cb57316b6e4294aFb2c3e205", amount);
-      await tx.wait();
-  
+    const receipt = await tx.wait();
+    
+    // Verify transaction was successful
+    if (receipt.status === 1) {
+      // Only call bookAppointment after confirmed payment
+      await bookAppointment();
       setPaymentStatus("success");
-      console.log("Payment successful:", tx.hash);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Payment failed");
-      setPaymentStatus("error");
-    } finally {
-      setIsLoading(false);
+      console.log("Payment and booking successful:", tx.hash);
+    } else {
+      throw new Error("Transaction failed");
     }
-  };
+  } catch (err: unknown) {
+    setError(err instanceof Error ? err.message : "Payment failed");
+    setPaymentStatus("error");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Update bookAppointment to throw errors
+const bookAppointment = async () => {
+
+  if (!user?._id || !date || !time) {
+    console.log(user?._id, date, time);
+    console.error("ebaba");
+  }
+
+  if (!user) {
+    throw new Error("User must be logged in to book an appointment");
+  }
+
+  const response = await fetch("http://localhost:8000/api/v1/patients/book/appointment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: user.id,
+      docId: params.doctorId,
+      slotDate: date ? date.toISOString().split("T")[0] : '',
+      slotTime: time,
+      amount: 100
+    }),
+  });
+
+  // First read the response data
+  const data = await response.json();
+
+  // Then check response status
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to book appointment");
+  }
+
+  // Show success toast with message
+  toast.success(data.message);
+};
 
   const availableTimes = ["09:00 AM", "10:00 AM", "11:30 AM", "02:00 PM", "03:30 PM", "04:30 PM"];
 
@@ -636,4 +329,6 @@ export default function AppointmentPage() {
       </div>
     </div>
   );
+
+
 }

@@ -17,14 +17,14 @@ export default function UserHealthDashboard() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const router = useRouter();
 
-  const openAppointmentModal = (doctor: Doctor) => {
-    setSelectedDoctor(doctor);
-    setIsAppointmentModalOpen(true);
-  };
+  // const openAppointmentModal = (doctor: Doctor) => {
+  //   setSelectedDoctor(doctor);
+  //   setIsAppointmentModalOpen(true);
+  // };
 
-  const handleBookAppointment = (doctor: Doctor) => {
-    router.push(`/appointment`);
-  };
+  // const handleBookAppointment = (doctor: Doctor) => {
+  //   router.push(`/appointment`);
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-8">
@@ -59,7 +59,7 @@ export default function UserHealthDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-700">3</div>
-              <p className="text-sm text-green-600">Next: Dr. Smith on 18th May</p>
+              <p className="text-sm text-green-600">Next: Dr. BASU on 18th May</p>
             </CardContent>
           </GlassCard>
 
@@ -69,7 +69,7 @@ export default function UserHealthDashboard() {
               <FileText className="h-5 w-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-700">2</div>
+              <div className="text-3xl font-bold text-green-700onBookAppointment">2</div>
               <p className="text-sm text-green-600">Last updated: 2 days ago</p>
             </CardContent>
           </GlassCard>
@@ -90,7 +90,7 @@ export default function UserHealthDashboard() {
               <CardTitle className="text-2xl">Book an Appointment</CardTitle>
             </CardHeader>
             <CardContent>
-              <DoctorsList onBookAppointment={handleBookAppointment} />
+              <DoctorsList />
             </CardContent>
           </GlassCard>
 

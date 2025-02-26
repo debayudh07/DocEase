@@ -334,7 +334,7 @@ const getDoctorAppointments = asyncHandler(async (req, res, next) => {
 const getDoctorAvailability = asyncHandler(async (req, res, next) => {
 });
 
-const getAllDoctors = asyncHandler(async (req, res, next) => {
+const PostAllDoctors = asyncHandler(async (req, res, next) => {
   // Extract the name from the request body
   const { name } = req.body;
 
@@ -353,4 +353,4 @@ const getAllDoctors = asyncHandler(async (req, res, next) => {
 
 
 
-export { registerDoctor, updateDoctor, deleteDoctor, loginDoctor, logoutDoctor, getVerifiedDoctorProfile, getAllApprovedDoctors, getDoctorsBySpecialty, getDoctorReviews, getDoctorAppointments, getDoctorAvailability, updateDoctorAvailability, updateDoctorPassword, getAllDoctors };
+export { registerDoctor, updateDoctor, deleteDoctor, loginDoctor, logoutDoctor, getVerifiedDoctorProfile, getAllApprovedDoctors, getDoctorsBySpecialty, getDoctorReviews, getDoctorAppointments, getDoctorAvailability, updateDoctorAvailability, updateDoctorPassword, PostAllDoctors };
